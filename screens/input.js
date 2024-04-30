@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect} from 'react';
 import { Text, TouchableOpacity, StyleSheet, View, TextInput, Button, Switch, Touchable } from 'react-native';
 
 const FlexibleInputFields = ({  }) => {
@@ -43,6 +43,7 @@ const FlexibleInputFields = ({  }) => {
     setFields(newFields);
   };
 
+
   return (
     <View >
       {fields.map((field, index) => (
@@ -67,8 +68,10 @@ const FlexibleInputFields = ({  }) => {
           <View style={styles.inputContainer}>
             <Switch
               value={field.isFixed}
-              onValueChange={(value) => handleIsFixedChange(value, index)}
+              //onValueChange={(value) => handleIsFixedChange(value, index)}
+              onValueChange={(value) => handleIsFixedChange(value, field.id)}
             />
+            <Text>{field.isFixed ? 'Variable' : 'Fixed'}</Text>
           </View>
           <TouchableOpacity
             style={styles.removeButton}
@@ -134,9 +137,12 @@ const styles = StyleSheet.create({
   removeButton: {
     margin: 10,
     alignSelf: 'center',
-    backgroundColor: 'rgba(255,0,0,.8)',
+    backgroundColor: 'rgba(255,0,0,0.8)',
     borderRadius: 22,
     flex: 0.22,
+    padding: 5, // Add padding to increase size
+    width: 50, // Specify width
+    height: 29, // Specify height
   }
 });
 
