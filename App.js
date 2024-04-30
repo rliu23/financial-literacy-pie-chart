@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import InputScreen from './screens/input';
 import { Feather } from '@expo/vector-icons';
+import HomeScreen from './screens/home'
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -36,28 +37,13 @@ export default function App() {
     <NavigationContainer>
     <Stack.Navigator>
       <Stack.Screen name="Container" component={Screens} options={{headerShown: false}}/>
-    </Stack.Navigator>
+      <Stack.Screen name="Home" component={HomeScreen}/>
+   </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
-function HomeScreen() {
-  return (
-    <View style={styles.container}>
-      <Text>THIS IS A TEST!</Text>
-      <StatusBar style="auto" />
-    </View>
-
-  )
-
-}
 
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+
+

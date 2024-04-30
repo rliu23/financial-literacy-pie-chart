@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, StyleSheet, View, TextInput, Button, Switch, Touchable } from 'react-native';
-
+import { Text, TouchableOpacity, StyleSheet, View, TextInput, Button, Switch } from 'react-native';
+import { useNavigation } from '@react-navigation/native'; 
+import Home from './home'
 const FlexibleInputFields = ({  }) => {
   const [fields, setFields] = useState([{ id: Date.now(), title: '', value: '', isFixed: false }]); // State to hold text field values
 
@@ -65,6 +66,7 @@ const FlexibleInputFields = ({  }) => {
             />
           </View>
           <View style={styles.inputContainer}>
+           {/* Switch may only work on iOS */}
             <Switch
               value={field.isFixed}
               onValueChange={(value) => handleIsFixedChange(value, index)}
