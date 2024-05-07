@@ -1,12 +1,20 @@
 
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, StyleSheet, View, TextInput, Button, Switch } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, TouchableWithoutFeedback, Keyboard, Text, TouchableOpacity, StyleSheet, View, TextInput, Button, Switch } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
 import Home from './home'
 
-const FlexibleInputFields = ({  }) => {
-  const [fields, setFields] = useState([{ id: Date.now(), title: '', value: '', isFixed: false }]); // State to hold text field values
+const DismissKeyboard = ({ children }) => (
+  // Dismiss keyboard when tapping anywhere
+  <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+    <View style={{ flex: 1 }}>{children}</View>
+  </TouchableWithoutFeedback>
+);
 
+const Input = ({  }) => {
+  const navigation = useNavigation();
+  const [fields, setFields] = useState([{ id: Date.now(), title: '', value: '', isFixed: false }]); // State to hold text field values
+  
   const addTextField = () => {
     setFields([...fields, { id: Date.now(), title: '', value: '', isFixed: false }]);
   };
@@ -14,6 +22,7 @@ const FlexibleInputFields = ({  }) => {
    const handleTitleChange = (text, id) => {
     const newFields = fields.map(field => {
       if (field.id === id) {
+        const value = text.trim() === "" ? "" : text;
         return { ...field, title: text };
       }
       return field;
@@ -46,8 +55,16 @@ const FlexibleInputFields = ({  }) => {
     setFields(newFields);
   };
 
+  const handlePress = () => {
+    console.log("Going from Input to home below");
+    console.log(fields);
+    navigation.navigate('Home', { data: fields });
+  };
 
   return (
+    <ScrollView>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="position" keyboardVerticalOffset={100}>
+    <DismissKeyboard>
     <View >
       {fields.map((field, index) => (
         <View key={index}>
@@ -55,7 +72,7 @@ const FlexibleInputFields = ({  }) => {
           <View style={styles.inputContainer}>
             <TextInput
               value={field.title}
-              onChangeText={(text) => handleTitleChange(text, index)}
+              onChangeText={(text) => handleTitleChange(text, field.id)}
               placeholder="Category"
               style={styles.input}
             />
@@ -63,7 +80,8 @@ const FlexibleInputFields = ({  }) => {
           <View style={styles.inputContainer}>
             <TextInput
               value={field.value}
-              onChangeText={(text) => handleValueChange(text, index)}
+              keyboardType="numeric"
+              onChangeText={(text) => handleValueChange(text, field.id)}
               placeholder="Amount"
               style={styles.input}
             />
@@ -87,14 +105,25 @@ const FlexibleInputFields = ({  }) => {
         </View>
         
       ))}
+      <View style={styles.buttonContainer}>
       <TouchableOpacity
         style={styles.addButton}
         onPress={addTextField}
         underlayColor='white'>
         <Text style={styles.addText}>Add Category</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.saveButton}
+        onPress={handlePress}
+        underlayColor='white'>
+        <Text style={styles.saveText}>Save and Return</Text>
+      </TouchableOpacity>
+      </View>
       
     </View>
+    </DismissKeyboard>
+    </KeyboardAvoidingView>
+    </ScrollView>
   );
 };
 
@@ -136,7 +165,6 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
     paddingVertical: 1,
-
   },
   removeButton: {
     margin: 10,
@@ -147,7 +175,25 @@ const styles = StyleSheet.create({
     padding: 5, // Add padding to increase size
     width: 50, // Specify width
     height: 29, // Specify height
+  },
+  saveText: {
+    fontSize: 16,
+    color: 'white',
+    textAlign: 'center',
+    paddingVertical: 5,
+  },
+  saveButton: {
+    margin: 10,
+    alignSelf: 'center',
+    backgroundColor: 'dodgerblue',
+    borderRadius: 15,
+    width: '35%',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 });
 
-export default FlexibleInputFields;
+export default Input;
