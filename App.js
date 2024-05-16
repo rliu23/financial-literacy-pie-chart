@@ -39,7 +39,7 @@ export default function App() {
       <Stack.Screen name="Container" component={Screens} options={{headerShown: false}}/>
       <Stack.Screen name="Home" component={HomeScreen}/>
       <Stack.Screen name="Input" component={InputScreen}/>
-   </Stack.Navigator>
+    </Stack.Navigator>
     </NavigationContainer>
   );
 }

@@ -2,10 +2,12 @@
 import React, { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, StyleSheet, View, TextInput, Button, Switch, Touchable, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
+// Other potential Pie Chart libraries in case react-native-chart-kit becomes outdated.
 //import PieChart from "react-js-pie-chart";
 //import Pie from 'react-native-pie'
 //import {LineChart} from 'react-native-charts-wrapper'
 import {PieChart} from "react-native-chart-kit";
+import "react-native-reanimated"
 
 const DismissKeyboard = ({ children }) => (
     // Dismiss keyboard when tapping anywhere
@@ -15,34 +17,17 @@ const DismissKeyboard = ({ children }) => (
   );
 
 export default function HomeScreen(route) {
-    const COOL_COLORS = ["#578CFF", "#8E57FF", "#5758FF", "#57C1FF", "#C557FF", "#78FFA0", "#78FFFB", "#77FFCC", "#78D8FF"];
-    const WARM_COLORS = ["#FFFD40", "#FFB840", "#FF9A40", "#FF5B64", "#FF70B6", "#FF6238"]
-    /*console.log("route data below");
-    console.log(route)      
-    console.log(route.key);*/
+    // Warm colors are variable, cool colors are fixed.
+    const COOL_COLORS = ["#0AF869", "#578CFF",  "#C557FF", "#8E57FF",   "#77FFCC", "#57C1FF",  "#78FFFB", ];
+    const WARM_COLORS = ["#FFFF00", "#FFB840", "#FC7904", "#FF1212", "#FF70B6", "#FFCAFF"]
+    
     const { data } = route?.route?.params ?? { data: [] };
-    const [budget, setBudget] = useState('');
-
-    const handlePress = () => {
-        const navigate = useNavigation();
-        navigation.replace("Input");
-    };
-    console.log("data read from Home page below");
-    console.log(data);
+    var { budget } = route?.route?.params ?? { budget: 0 };
 
     if (!data || data.length === 0) {
         return (
             <View style={styles.container}>
-                <Text style={styles.inputText}>Enter data in Input Screen to display data.</Text>
-                {/*
-                <TouchableOpacity
-                    style={styles.navButton}
-                    onPress={handlePress}
-                    underlayColor='white'>
-                    <Text style={styles.navText}>Go to Input Screen</Text>
-                </TouchableOpacity>
-                */}
-                
+                <Text style={styles.inputText}>Enter expenses in Input Screen to display data.</Text>
             </View>
         )
     }
@@ -57,16 +42,17 @@ export default function HomeScreen(route) {
             barPercentage: 0.5,
             useShadowColorFromDataset: false // optional
         };
-        const chartData = data.sort((a, b) => (a.isFixed === b.isFixed) ? 0 : a.isFixed ? 1 : -1)
+        var chartData = data.sort((a, b) => (a.isFixed === b.isFixed) ? 0 : a.isFixed ? -1 : 1)
         .map((field, index) => ({
             name: field.title,
             amount: parseInt(field.value) || 0,
             fixed: field.isFixed,
-            color: field.isFixed ? COOL_COLORS[index % COOL_COLORS.length] : WARM_COLORS[index % WARM_COLORS.length],
+            color: field.isFixed ? WARM_COLORS[index % WARM_COLORS.length] : COOL_COLORS[index % COOL_COLORS.length],
             legendFontColor: "#7F7F7F",
-            legendFontSize: 15
+            legendFontSize: 15,
         }));
-        const fixedData = data.filter(field => field.isFixed).map((field, index) => ({
+        
+        const fixedData = data.filter(field => !field.isFixed).map((field, index) => ({
             name: field.title,
             amount: parseInt(field.value) || 0,
             fixed: field.isFixed,
@@ -74,77 +60,49 @@ export default function HomeScreen(route) {
             legendFontColor: "#7F7F7F",
             legendFontSize: 15
         }));
-        const notFixedData = data.filter(field => !field.isFixed).map((field, index) => ({
+
+        const notFixedData = data.filter(field => field.isFixed).map((field, index) => ({
             name: field.title,
             amount: parseInt(field.value) || 0,
             fixed: field.isFixed,
             color: WARM_COLORS[index % WARM_COLORS.length], // Cycle through the predefined colors
             legendFontColor: "#7F7F7F",
-            legendFontSize: 15
+            legendFontSize: 15,
         }));
-        /*
-        // Add budget data item
-        chartData = setBudget(chartData => [
-            ...chartData,
-            {
-                name: "remainingBudget",
-                // MIGHT ERROR WHEN SWITCHING FROM INPUT TO HOME WITH SOMETHING ALREADY IN TEXT FIELD
-                amount: parseInt(0),
-                color: COLORS[prevChartData.length % COLORS.length], // Calculate color index based on existing items
-                legendFontColor: "#7F7F7F",
-                legendFontSize: 15
-            }
-        ]);
-        const totalAmount = chartData.reduce((total, data) => total + data.amount, 0);
-         */
-
-        console.log("chartdata below");
-        console.log(chartData);
-
         
-/*
-        const handleBudgetChange = (value) => {
-            const index = chartData.findIndex(item => item.name === "remainingBudget");
+        
+     
+        const expenses = chartData.reduce((total, data) => total + data.amount, 0);
+       
+        const remainingBudget = budget - expenses;
 
-            if (index !== -1) {
-                const updatedChartData = [...chartData]; // Copy of chartData
-                // Update the field you want to change
-                updatedChartData[index] = {
-                    ...updatedChartData[index],
-                    // Update field value
-                    amount: value
-                };
-                chartData = updatedChartData;
-            }
-            else {
-                console.log("BUDGET ERROR OCCURRED !!!")
-            }
+        // Adding remaining budget item to all expenses pie chart.
+        const budgetItem = {
+            name: "Remaining",
+            amount: parseFloat(remainingBudget), 
+            fixed: false, 
+            color: "#EFEFEF", 
+            legendFontColor: "#7F7F7F",
+            legendFontSize: 15
+        };
+        chartData = [
+            ...chartData,
+            budgetItem
+        ]
 
-            
-        }*/
-        const totalAmount = 0;
-
-        if (totalAmount > budget) {
+        if (budget == "") {
+            budget = 0;
+        }
+        if (expenses > budget) {
             return (
                 <DismissKeyboard> 
-                <View>
-                    <Text>
-                        Expenses (${totalAmount}) greater than income (${budget}).
-                        Enter greater income or reduce expenses.
+                <View style={styles.container}>
+                    <Text style={{fontSize:19, marginHorizontal: 15, textAlign: 'center',}}>
+                        Expenses (${expenses}) greater than budget (${budget}).
+                        Enter greater budget or reduce expenses on Input Screen.
                     </Text>
-                    <Text style={{fontSize:18, paddingVertical:5}}>
-                        Total Income
-                    </Text>
-                    <TextInput
-                        placeholder="Enter monthly income"
-                        keyboardType="numeric"
-                        style={styles.input}
-                        value={budget}
-                        // onChangeText={handleBudgetChange}
-                    />
                 </View>
                 </DismissKeyboard>
-                
             )
         }
         else {
@@ -154,27 +112,41 @@ export default function HomeScreen(route) {
                 
                 <View style={styles.container}>
                     <Text style={{fontSize:18, paddingVertical:5}}>
-                        Total Income
+                        Budget
                     </Text>
                     <TextInput
-                        placeholder="Enter monthly income"
+                        placeholder="Budget"
                         keyboardType="numeric"
                         style={styles.input}
                         value={budget}
-                        //onChangeText={handleBudgetChange}
+                        editable={false}
                     />
+                    <View style={styles.expenseContainer}>
+                        <Text style={styles.titleText}>Expenses</Text>
+                        <Text style={styles.titleText}>Remaining Budget</Text>
+                    </View>
+                    <View style={{flex: 1,
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  paddingHorizontal: 20, }}>
+                        <Text style={styles.expenseText}>{expenses}</Text>
+                        <View style={{width: 145,}}></View>
+                        <Text style={styles.expenseText}>{remainingBudget}</Text>
+                        
+                    </View>
                     <Text style={{fontSize:18, paddingTop:20}}>
                     All Expenses
                     </Text>
                     <PieChart
                         data={chartData}
                         width={400}
-                        height={200}
+                        height={250}
                         chartConfig={chartConfig}
                         accessor={"amount"}
                         backgroundColor={"transparent"}
-                        paddingLeft={"15"}
-                        center={[10, 10]}
+                        paddingLeft={"-10"}
+                        center={[20, 10]}
                         absolute
                     />
                     <Text style={{fontSize:18, paddingTop:15}}>
@@ -183,7 +155,7 @@ export default function HomeScreen(route) {
                     <PieChart
                         data={fixedData}
                         width={400}
-                        height={200}
+                        height={250}
                         chartConfig={chartConfig}
                         accessor={"amount"}
                         backgroundColor={"transparent"}
@@ -197,7 +169,7 @@ export default function HomeScreen(route) {
                     <PieChart
                         data={notFixedData}
                         width={400}
-                        height={200}
+                        height={250}
                         chartConfig={chartConfig}
                         accessor={"amount"}
                         backgroundColor={"transparent"}
@@ -206,89 +178,12 @@ export default function HomeScreen(route) {
                         absolute
                     />
                 </View>
-                
                 </DismissKeyboard>
                 </ScrollView>
             )
-
         }
-
-        
-        
     }
 }
-/*
-export default function HomeScreen({ route }) {
-    
-    
-
-    if (data != []) {
-        const chartData = data.map((field, index) => ({
-            name: field.category,
-            amount: parseInt(field.amount),
-            color: COLORS[index % COLORS.length], // Cycle through the predefined colors
-            legendFontColor: "#7F7F7F",
-            legendFontSize: 15
-        }));
-    }
-    
-    
-
-    const data1 = [
-        {
-          name: "Rent",
-          population: 1000,
-          color: "rgba(131, 167, 234, 1)",
-          legendFontColor: "#7F7F7F",
-          legendFontSize: 15
-        },
-        {
-          name: "Food",
-          population: 200,
-          color: "green",
-          legendFontColor: "#7F7F7F",
-          legendFontSize: 15
-        },
-        {
-          name: "Savings",
-          population: 2000,
-          color: "red",
-          legendFontColor: "#7F7F7F",
-          legendFontSize: 15
-        },
-        {
-          name: "Utilities",
-          population: 400,
-          color: "dodgerblue",
-          legendFontColor: "#7F7F7F",
-          legendFontSize: 15
-        }
-      ];
-
-    
-
-    return (
-      <View style={styles.container}>
-        <PieChart
-            data={data1}
-            width={400}
-            height={200}
-            chartConfig={chartConfig}
-            accessor={"population"}
-            backgroundColor={"transparent"}
-            paddingLeft={"15"}
-            center={[10, 10]}
-            absolute
-        />
-
-        
-
-    
-    </View>
-    )
-  }
-*/
-
 
 
 const styles = StyleSheet.create({
@@ -297,6 +192,28 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    titleText: {
+        flex:1, 
+        textAlign: 'center', 
+        fontSize:18, 
+        paddingVertical:15,
+    },
+    expenseContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    expenseText: {
+        borderColor: 'rgba(200,200,200,.2)',
+        borderWidth: 1,
+        borderRadius: 1,
+        justifyContent: 'center',
+        fontSize: 19,
+        paddingHorizontal: 20,
+        paddingVertical: 5,
+
     },
     inputText: {
         fontSize: 19,
@@ -318,11 +235,11 @@ const styles = StyleSheet.create({
         width: '40%',
     },
     input: {
-        fontSize: 19,
+        fontSize: 19.5,
         height: 40,
-        borderColor: 'rgba(200,200,200,5)',
+        borderColor: 'rgba(200,200,200,.2)',
         borderWidth: 1,
-        paddingHorizontal: 5,
-        borderRadius: 4,
-      },
+        paddingHorizontal: 30,
+        borderRadius: 1,
+    },
 });
